@@ -102,7 +102,8 @@ jobs:
         run: pnpm install
 
       - name: build app (macos)
-        run: pnpm --filter=@modrinth/app run tauri build --target universal-apple-darwin --config "tauri-release.conf.json"
+        # tauri.conf.yml for normal build and boot.
+        run: pnpm --filter=@modrinth/app run tauri build --target universal-apple-darwin --config "tauri.conf.json"
         if: startsWith(matrix.platform, 'macos')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,7 +111,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
       - name: build app
-        run: pnpm --filter=@modrinth/app run tauri build --config "tauri-release.conf.json"
+        # tauri.conf.yml for normal build and boot.
+        run: pnpm --filter=@modrinth/app run tauri build --config "tauri.conf.json"
         id: build_os
         if: "!startsWith(matrix.platform, 'macos')"
         env:
@@ -139,4 +141,3 @@ jobs:
             target/release/bundle/*/*.msi
             target/release/bundle/*/*.msi.zip
             target/release/bundle/*/*.msi.zip.sig
-

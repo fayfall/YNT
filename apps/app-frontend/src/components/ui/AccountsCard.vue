@@ -54,9 +54,9 @@
       </div>
     </Card>
   </transition>
-  <ModalWrapper ref="loginOfflineModal" class="modal" header="Offline auth">
+  <ModalWrapper ref="loginOfflineModal" class="modal" header="Add new offline account">
     <div class="modal-body">
-      <div class="label">Offline account</div>
+      <div class="label">Enter offline username</div>
       <input type="text" v-model="playerName" placeholder="Provide offline player name" />
       <Button icon-only color="secondary" @click="offlineLoginFinally()">
         Continue

@@ -1,21 +1,13 @@
 <template>
   <transition name="fade">
-    <div
-      v-show="shown"
-      ref="contextMenu"
-      class="context-menu"
-      :style="{
-        left: left,
-        top: top,
-      }"
-    >
+    <div v-show="shown" ref="contextMenu" class="context-menu" :style="{
+      left: left,
+      top: top,
+    }">
       <div v-for="(option, index) in options" :key="index" @click.stop="optionClicked(option.name)">
         <hr v-if="option.type === 'divider'" class="divider" />
-        <div
-          v-else-if="!(isLinkedData(item) && option.name === `add_content`)"
-          class="item clickable"
-          :class="[option.color ?? 'base']"
-        >
+        <div v-else-if="!(isLinkedData(item) && option.name === `add_content`)" class="item clickable"
+          :class="[option.color ?? 'base']">
           <slot :name="option.name" />
         </div>
       </div>
@@ -25,7 +17,6 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { show_ads_window, hide_ads_window } from '@/helpers/ads.js'
 
 const emit = defineEmits(['menu-closed', 'option-clicked'])
 
@@ -38,7 +29,6 @@ const shown = ref(false)
 
 defineExpose({
   showMenu: (event, passedItem, passedOptions) => {
-    hide_ads_window()
     item.value = passedItem
     options.value = passedOptions
 
@@ -71,9 +61,6 @@ const isLinkedData = (item) => {
 }
 
 const hideContextMenu = () => {
-  if (shown.value) {
-    show_ads_window()
-  }
   shown.value = false
   emit('menu-closed')
 }

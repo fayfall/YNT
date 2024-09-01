@@ -62,7 +62,6 @@
           </a>
         </div>
       </Card>
-      <PromotionWrapper ref="promo" />
       <Card class="sidebar-card">
         <div class="stats">
           <div class="stat">
@@ -262,7 +261,6 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { install as installVersion } from '@/store/install.js'
 import { get_project, get_project_many, get_team, get_version_many } from '@/helpers/cache.js'
-import PromotionWrapper from '@/components/ui/PromotionWrapper.vue'
 
 dayjs.extend(relativeTime)
 

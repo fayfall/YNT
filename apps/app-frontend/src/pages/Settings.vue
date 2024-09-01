@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { LogOutIcon, LogInIcon, BoxIcon, FolderSearchIcon, TrashIcon } from '@modrinth/assets'
+import { ref, watch } from 'vue'
+import { LogOutIcon, LogInIcon, BoxIcon, FolderSearchIcon, TrashIcon, PirateShipIcon, UpdatedIcon } from '@modrinth/assets'
 import { Card, Slider, DropdownSelect, Toggle, Button } from '@modrinth/ui'
 import { handleError, useTheming } from '@/store/state'
 import { get, set } from '@/helpers/settings'
@@ -8,23 +8,26 @@ import { get_java_versions, get_max_memory, set_java_version } from '@/helpers/j
 import { get as getCreds, logout } from '@/helpers/mr_auth.js'
 import JavaSelector from '@/components/ui/JavaSelector.vue'
 import ModrinthLoginScreen from '@/components/ui/tutorial/ModrinthLoginScreen.vue'
-import { optOutAnalytics, optInAnalytics } from '@/helpers/analytics'
+import { optOutAnalytics } from '@/helpers/analytics'
 import { open } from '@tauri-apps/plugin-dialog'
 import { getOS } from '@/helpers/utils.js'
-import { getVersion } from '@tauri-apps/api/app'
+// import { getVersion } from '@tauri-apps/api/app'
 import { get_user, purge_cache_types } from '@/helpers/cache.js'
-import { hide_ads_window } from '@/helpers/ads.js'
+
 import ConfirmModalWrapper from '@/components/ui/modal/ConfirmModalWrapper.vue'
 
-onMounted(() => {
-  hide_ads_window()
-})
+import { version, development_build } from '../../package.json'
+import {
+  getRemote,
+  getBranches,
+  launcherUrl,
+  latestBetaCommitLink,
+  latestBetaCommitTruncatedSha,
+} from '@/helpers/update.js'
 
 const pageOptions = ['Home', 'Library']
 
 const themeStore = useTheming()
-
-const version = await getVersion()
 
 const accessSettings = async () => {
   const settings = await get()
@@ -51,7 +54,7 @@ watch(
     const setSettings = JSON.parse(JSON.stringify(newSettings))
 
     if (setSettings.telemetry) {
-      optInAnalytics()
+      // optInAnalytics()
     } else {
       optOutAnalytics()
     }
@@ -147,6 +150,9 @@ async function purgeCache() {
     'search_results',
   ]).catch(handleError)
 }
+
+await getRemote(false, false)
+await getBranches()
 </script>
 
 <template>
@@ -175,14 +181,9 @@ async function purgeCache() {
           Sign in
         </button>
       </div>
-      <ConfirmModalWrapper
-        ref="purgeCacheConfirmModal"
-        title="Are you sure you want to purge the cache?"
+      <ConfirmModalWrapper ref="purgeCacheConfirmModal" title="Are you sure you want to purge the cache?"
         description="If you proceed, your entire cache will be purged. This may slow down the app temporarily."
-        :has-to-type="false"
-        proceed-label="Purge cache"
-        @proceed="purgeCache"
-      />
+        :has-to-type="false" proceed-label="Purge cache" @proceed="purgeCache" />
       <div class="adjacent-input">
         <label for="purge-cache">
           <span class="label__title">App cache</span>
@@ -225,20 +226,12 @@ async function purgeCache() {
           <span class="label__title">Color theme</span>
           <span class="label__description">Change the global launcher color theme.</span>
         </label>
-        <DropdownSelect
-          id="theme"
-          name="Theme dropdown"
-          :options="themeStore.themeOptions"
-          :default-value="settings.theme"
-          :model-value="settings.theme"
-          class="theme-dropdown"
-          @change="
-            (e) => {
+        <DropdownSelect id="theme" name="Theme dropdown" :options="themeStore.themeOptions"
+          :default-value="settings.theme" :model-value="settings.theme" class="theme-dropdown" @change="(e) => {
               themeStore.setThemeState(e.option.toLowerCase())
               settings.theme = themeStore.selectedTheme
             }
-          "
-        />
+            " />
       </div>
       <div class="adjacent-input">
         <label for="advanced-rendering">
@@ -248,70 +241,45 @@ async function purgeCache() {
             without hardware-accelerated rendering.
           </span>
         </label>
-        <Toggle
-          id="advanced-rendering"
-          :model-value="themeStore.advancedRendering"
-          :checked="themeStore.advancedRendering"
-          @update:model-value="
-            (e) => {
+        <Toggle id="advanced-rendering" :model-value="themeStore.advancedRendering"
+          :checked="themeStore.advancedRendering" @update:model-value="(e) => {
               themeStore.advancedRendering = e
               settings.advanced_rendering = themeStore.advancedRendering
             }
-          "
-        />
+            " />
       </div>
       <div class="adjacent-input">
         <label for="minimize-launcher">
           <span class="label__title">Minimize launcher</span>
-          <span class="label__description"
-            >Minimize the launcher when a Minecraft process starts.</span
-          >
+          <span class="label__description">Minimize the launcher when a Minecraft process starts.</span>
         </label>
-        <Toggle
-          id="minimize-launcher"
-          :model-value="settings.hide_on_process_start"
-          :checked="settings.hide_on_process_start"
-          @update:model-value="
-            (e) => {
+        <Toggle id="minimize-launcher" :model-value="settings.hide_on_process_start"
+          :checked="settings.hide_on_process_start" @update:model-value="(e) => {
               settings.hide_on_process_start = e
             }
-          "
-        />
+            " />
       </div>
       <div v-if="getOS() != 'MacOS'" class="adjacent-input">
         <label for="native-decorations">
           <span class="label__title">Native decorations</span>
           <span class="label__description">Use system window frame (app restart required).</span>
         </label>
-        <Toggle
-          id="native-decorations"
-          :model-value="settings.native_decorations"
-          :checked="settings.native_decorations"
-          @update:model-value="
-            (e) => {
+        <Toggle id="native-decorations" :model-value="settings.native_decorations"
+          :checked="settings.native_decorations" @update:model-value="(e) => {
               settings.native_decorations = e
             }
-          "
-        />
+            " />
       </div>
       <div class="adjacent-input">
         <label for="opening-page">
           <span class="label__title">Default landing page</span>
           <span class="label__description">Change the page to which the launcher opens on.</span>
         </label>
-        <DropdownSelect
-          id="opening-page"
-          name="Opening page dropdown"
-          :options="pageOptions"
-          :default-value="settings.default_page"
-          :model-value="settings.default_page"
-          class="opening-page"
-          @change="
-            (e) => {
+        <DropdownSelect id="opening-page" name="Opening page dropdown" :options="pageOptions"
+          :default-value="settings.default_page" :model-value="settings.default_page" class="opening-page" @change="(e) => {
               settings.default_page = e.option
             }
-          "
-        />
+            " />
       </div>
     </Card>
     <Card>
@@ -330,13 +298,7 @@ async function purgeCache() {
             effect)
           </span>
         </label>
-        <Slider
-          id="max-downloads"
-          v-model="settings.max_concurrent_downloads"
-          :min="1"
-          :max="10"
-          :step="1"
-        />
+        <Slider id="max-downloads" v-model="settings.max_concurrent_downloads" :min="1" :max="10" :step="1" />
       </div>
 
       <div class="adjacent-input">
@@ -348,13 +310,7 @@ async function purgeCache() {
             effect)
           </span>
         </label>
-        <Slider
-          id="max-writes"
-          v-model="settings.max_concurrent_writes"
-          :min="1"
-          :max="50"
-          :step="1"
-        />
+        <Slider id="max-writes" v-model="settings.max_concurrent_writes" :min="1" :max="50" :step="1" />
       </div>
     </Card>
     <Card>
@@ -367,21 +323,16 @@ async function purgeCache() {
         <label for="opt-out-analytics">
           <span class="label__title">Telemetry</span>
           <span class="label__description">
-            Modrinth collects anonymized analytics and usage data to improve our user experience and
+            (Always disabled by AstralRinth) • Modrinth collects anonymized analytics and usage data to improve our user experience and
             customize your experience. By disabling this option, you opt out and your data will no
-            longer be collected.
+            longer be collected. 
           </span>
         </label>
-        <Toggle
-          id="opt-out-analytics"
-          :model-value="settings.telemetry"
-          :checked="settings.telemetry"
-          @update:model-value="
-            (e) => {
+        <Toggle id="opt-out-analytics" :model-value="settings.telemetry" :disabled="!settings.telemetry" :checked="settings.telemetry"
+          @update:model-value="(e) => {
               settings.telemetry = e
             }
-          "
-        />
+            " />
       </div>
       <div class="adjacent-input">
         <label for="disable-discord-rpc">
@@ -393,11 +344,7 @@ async function purgeCache() {
             mods. (app restart required to take effect)
           </span>
         </label>
-        <Toggle
-          id="disable-discord-rpc"
-          v-model="settings.discord_rpc"
-          :checked="settings.discord_rpc"
-        />
+        <Toggle id="disable-discord-rpc" v-model="settings.discord_rpc" :checked="settings.discord_rpc" />
       </div>
     </Card>
     <Card>
@@ -410,36 +357,20 @@ async function purgeCache() {
         <label :for="'java-' + version">
           <span class="label__title">Java {{ version }} location</span>
         </label>
-        <JavaSelector
-          :id="'java-selector-' + version"
-          v-model="javaVersions[version]"
-          :version="version"
-          @update:model-value="updateJavaVersion"
-        />
+        <JavaSelector :id="'java-selector-' + version" v-model="javaVersions[version]" :version="version"
+          @update:model-value="updateJavaVersion" />
       </template>
       <hr class="card-divider" />
       <label for="java-args">
         <span class="label__title">Java arguments</span>
       </label>
-      <input
-        id="java-args"
-        v-model="settings.launchArgs"
-        autocomplete="off"
-        type="text"
-        class="installation-input"
-        placeholder="Enter java arguments..."
-      />
+      <input id="java-args" v-model="settings.launchArgs" autocomplete="off" type="text" class="installation-input"
+        placeholder="Enter java arguments..." />
       <label for="env-vars">
         <span class="label__title">Environmental variables</span>
       </label>
-      <input
-        id="env-vars"
-        v-model="settings.envVars"
-        autocomplete="off"
-        type="text"
-        class="installation-input"
-        placeholder="Enter environmental variables..."
-      />
+      <input id="env-vars" v-model="settings.envVars" autocomplete="off" type="text" class="installation-input"
+        placeholder="Enter environmental variables..." />
       <hr class="card-divider" />
       <div class="adjacent-input">
         <label for="max-memory">
@@ -448,14 +379,7 @@ async function purgeCache() {
             The memory allocated to each instance when it is ran.
           </span>
         </label>
-        <Slider
-          id="max-memory"
-          v-model="settings.memory.maximum"
-          :min="8"
-          :max="maxMemory"
-          :step="64"
-          unit="mb"
-        />
+        <Slider id="max-memory" v-model="settings.memory.maximum" :min="8" :max="maxMemory" :step="64" unit="mb" />
       </div>
     </Card>
     <Card>
@@ -469,39 +393,24 @@ async function purgeCache() {
           <span class="label__title">Pre launch</span>
           <span class="label__description"> Ran before the instance is launched. </span>
         </label>
-        <input
-          id="pre-launch"
-          v-model="settings.hooks.pre_launch"
-          autocomplete="off"
-          type="text"
-          placeholder="Enter pre-launch command..."
-        />
+        <input id="pre-launch" v-model="settings.hooks.pre_launch" autocomplete="off" type="text"
+          placeholder="Enter pre-launch command..." />
       </div>
       <div class="adjacent-input">
         <label for="wrapper">
           <span class="label__title">Wrapper</span>
           <span class="label__description"> Wrapper command for launching Minecraft. </span>
         </label>
-        <input
-          id="wrapper"
-          v-model="settings.hooks.wrapper"
-          autocomplete="off"
-          type="text"
-          placeholder="Enter wrapper command..."
-        />
+        <input id="wrapper" v-model="settings.hooks.wrapper" autocomplete="off" type="text"
+          placeholder="Enter wrapper command..." />
       </div>
       <div class="adjacent-input">
         <label for="post-exit">
           <span class="label__title">Post exit</span>
           <span class="label__description"> Ran after the game closes. </span>
         </label>
-        <input
-          id="post-exit"
-          v-model="settings.hooks.post_exit"
-          autocomplete="off"
-          type="text"
-          placeholder="Enter post-exit command..."
-        />
+        <input id="post-exit" v-model="settings.hooks.post_exit" autocomplete="off" type="text"
+          placeholder="Enter post-exit command..." />
       </div>
     </Card>
     <Card>
@@ -517,58 +426,71 @@ async function purgeCache() {
             Overwrites the options.txt file to start in full screen when launched.
           </span>
         </label>
-        <Toggle
-          id="fullscreen"
-          :model-value="settings.force_fullscreen"
-          :checked="settings.force_fullscreen"
-          @update:model-value="
-            (e) => {
+        <Toggle id="fullscreen" :model-value="settings.force_fullscreen" :checked="settings.force_fullscreen"
+          @update:model-value="(e) => {
               settings.force_fullscreen = e
             }
-          "
-        />
+            " />
       </div>
       <div class="adjacent-input">
         <label for="width">
           <span class="label__title">Width</span>
           <span class="label__description"> The width of the game window when launched. </span>
         </label>
-        <input
-          id="width"
-          v-model="settings.game_resolution[0]"
-          :disabled="settings.force_fullscreen"
-          autocomplete="off"
-          type="number"
-          placeholder="Enter width..."
-        />
+        <input id="width" v-model="settings.game_resolution[0]" :disabled="settings.force_fullscreen" autocomplete="off"
+          type="number" placeholder="Enter width..." />
       </div>
       <div class="adjacent-input">
         <label for="height">
           <span class="label__title">Height</span>
           <span class="label__description"> The height of the game window when launched. </span>
         </label>
-        <input
-          id="height"
-          v-model="settings.game_resolution[1]"
-          :disabled="settings.force_fullscreen"
-          autocomplete="off"
-          type="number"
-          class="input"
-          placeholder="Enter height..."
-        />
+        <input id="height" v-model="settings.game_resolution[1]" :disabled="settings.force_fullscreen"
+          autocomplete="off" type="number" class="input" placeholder="Enter height..." />
       </div>
     </Card>
     <Card>
-      <div class="label">
+      <div class="label inline-fix">
         <h3>
-          <span class="label__title size-card-header">About</span>
+          <span class="label__title size-card-header in"
+            > About
+            <p v-if="development_build" class="development option">
+              You are using a development version, there may be errors.
+            </p>
+          </span>
         </h3>
       </div>
       <div>
         <label>
-          <span class="label__title">App version</span>
-          <span class="label__description">Modrinth App v{{ version }} </span>
+          <span class="label__title inl">AstralRinth <PirateShipIcon /> Version • {{ version }}</span>
+
+          <span class="label__description"
+            >Latest beta commit • 
+            <a class="github" :href="latestBetaCommitLink">{{
+              latestBetaCommitTruncatedSha
+            }}</a></span
+          >
+          <span class="label__description"
+            >All latest versions always published on GitHub
+            <a class="github" :href="launcherUrl">Our GitHub repository</a></span
+          >
+
+          <span class="label__title">Update Checker</span>
+
+          <span class="label__description"
+            >Version on remote server • 
+            <p id="releaseData" class="cosmic inline-fix"></p>
+          </span>
+          <span class="label__description"
+            >Version on local device • 
+            <p class="cosmic inline-fix">v{{ version }}</p></span
+          >
         </label>
+        <div class="inline-item-group">
+          <Button icon-only @click="getRemote(false, false), getBranches()">
+            <UpdatedIcon /> Check for updates
+          </Button>
+        </div>
       </div>
     </Card>
   </div>
@@ -605,5 +527,113 @@ async function purgeCache() {
       flex-basis: auto;
     }
   }
+}
+
+.development {
+  color: #ff6a00;
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 1.5s ease;
+}
+.development:hover,
+.development:focus,
+.development:active {
+  color: #4800d3;
+  text-shadow: #801313;
+}
+
+.cosmic {
+  color: #3e8cde;
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+.cosmic:hover,
+.cosmic:focus,
+.cosmic:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
+.download {
+  color: #3e8cde;
+  border: none;
+  padding: var(--gap-sm) var(--gap-lg);
+  //background-color: rgba(0, 0, 0, 0.0);
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+.download:hover,
+.download:focus,
+.download:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
+a.github {
+  color: #3e8cde;
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+
+a.github:hover,
+a.github:focus,
+a.github:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
+.inline-item-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.inline-fix {
+  display: inline-flex;
+  margin-top: -2rem;
+  margin-bottom: -2rem;
+}
+
+.download-modal {
+  color: #3e8cde;
+  padding: var(--gap-sm) var(--gap-lg);
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+.download-modal:hover,
+.download-modal:focus,
+.download-modal:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
+.option {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  margin-top: auto;
+  margin-left: 0.5rem;
+  font-size: 1rem;
+  padding: 0.5rem;
 }
 </style>

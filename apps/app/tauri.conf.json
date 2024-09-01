@@ -47,9 +47,9 @@
       }
     ]
   },
-  "productName": "Modrinth App",
+  "productName": "AstralRinth App",
   "version": "0.8.5",
-  "identifier": "ModrinthApp",
+  "identifier": "AstralRinth",
   "plugins": {
     "deep-link": {
       "desktop": {
@@ -68,7 +68,7 @@
         "fullscreen": false,
         "height": 800,
         "resizable": true,
-        "title": "Modrinth App",
+        "title": "AstralRinth",
         "width": 1280,
         "minHeight": 750,
         "minWidth": 1100,
@@ -86,10 +86,10 @@
         ],
         "enable": true
       },
-      "capabilities": ["ads", "core", "plugins"],
+      "capabilities": ["core", "plugins"],
       "csp": {
         "default-src": "'self' customprotocol: asset:",
-        "connect-src": "ipc: http://ipc.localhost https://modrinth.com https://*.modrinth.com https://*.posthog.com https://*.sentry.io https://*.cloudflare.com https://api.mclo.gs https://cmp.inmobi.com",
+        "connect-src": "https://api.github.com ipc: http://ipc.localhost https://modrinth.com https://*.modrinth.com https://*.posthog.com https://*.sentry.io https://*.cloudflare.com https://api.mclo.gs https://cmp.inmobi.com",
         "font-src": [
           "https://cdn-raw.modrinth.com/fonts/inter/"
         ],

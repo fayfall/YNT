@@ -4,13 +4,13 @@ CREATE TABLE settings (
     max_concurrent_downloads INTEGER NOT NULL DEFAULT 10,
     max_concurrent_writes INTEGER NOT NULL DEFAULT 10,
 
-    theme TEXT NOT NULL DEFAULT 'dark',
+    theme TEXT NOT NULL DEFAULT 'oled',
     default_page TEXT NOT NULL DEFAULT 'home',
     collapsed_navigation INTEGER NOT NULL DEFAULT TRUE,
     advanced_rendering INTEGER NOT NULL DEFAULT TRUE,
     native_decorations INTEGER NOT NULL DEFAULT FALSE,
 
-    telemetry INTEGER NOT NULL DEFAULT TRUE,
+    telemetry INTEGER NOT NULL DEFAULT FALSE,
     discord_rpc INTEGER NOT NULL DEFAULT TRUE,
     developer_mode INTEGER NOT NULL DEFAULT FALSE,
 

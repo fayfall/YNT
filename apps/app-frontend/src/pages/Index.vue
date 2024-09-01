@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import RowDisplay from '@/components/RowDisplay.vue'
 import { list } from '@/helpers/profile.js'
@@ -8,11 +8,6 @@ import { useBreadcrumbs } from '@/store/breadcrumbs'
 import { handleError } from '@/store/notifications.js'
 import dayjs from 'dayjs'
 import { get_search_results } from '@/helpers/cache.js'
-import { hide_ads_window } from '@/helpers/ads.js'
-
-onMounted(() => {
-  hide_ads_window(true)
-})
 
 const featuredModpacks = ref({})
 const featuredMods = ref({})
@@ -105,31 +100,27 @@ onUnmounted(() => {
 
 <template>
   <div class="page-container">
-    <RowDisplay
-      v-if="total > 0"
-      :instances="[
-        {
-          label: 'Jump back in',
-          route: '/library',
-          instances: recentInstances,
-          instance: true,
-          downloaded: true,
-        },
-        {
-          label: 'Popular packs',
-          route: '/browse/modpack',
-          instances: featuredModpacks,
-          downloaded: false,
-        },
-        {
-          label: 'Popular mods',
-          route: '/browse/mod',
-          instances: featuredMods,
-          downloaded: false,
-        },
-      ]"
-      :can-paginate="true"
-    />
+    <RowDisplay v-if="total > 0" :instances="[
+      {
+        label: 'Jump back in',
+        route: '/library',
+        instances: recentInstances,
+        instance: true,
+        downloaded: true,
+      },
+      {
+        label: 'Popular packs',
+        route: '/browse/modpack',
+        instances: featuredModpacks,
+        downloaded: false,
+      },
+      {
+        label: 'Popular mods',
+        route: '/browse/mod',
+        instances: featuredMods,
+        downloaded: false,
+      },
+    ]" :can-paginate="true" />
   </div>
 </template>
 

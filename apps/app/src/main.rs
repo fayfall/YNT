@@ -27,61 +27,61 @@ extern crate objc;
 async fn initialize_state(app: tauri::AppHandle) -> api::Result<()> {
     theseus::EventState::init(app.clone()).await?;
 
-    #[cfg(feature = "updater")]
-    {
-        use tauri_plugin_updater::UpdaterExt;
+    // #[cfg(feature = "updater")]
+    // {
+    //     use tauri_plugin_updater::UpdaterExt;
 
-        let updater = app.updater_builder().build()?;
+    //     let updater = app.updater_builder().build()?;
 
-        let update_fut = updater.check();
+    //     let update_fut = updater.check();
 
-        State::init().await?;
+    //     State::init().await?;
 
-        let check_bar = theseus::init_loading(
-            theseus::LoadingBarType::CheckingForUpdates,
-            1.0,
-            "Checking for updates...",
-        )
-        .await?;
+    //     let check_bar = theseus::init_loading(
+    //         theseus::LoadingBarType::CheckingForUpdates,
+    //         1.0,
+    //         "Checking for updates...",
+    //     )
+    //     .await?;
 
-        let update = update_fut.await;
+    //     let update = update_fut.await;
 
-        drop(check_bar);
+    //     drop(check_bar);
 
-        if let Some(update) = update.ok().flatten() {
-            tracing::info!("Update found: {:?}", update.download_url);
-            let loader_bar_id = theseus::init_loading(
-                theseus::LoadingBarType::LauncherUpdate {
-                    version: update.version.clone(),
-                    current_version: update.current_version.clone(),
-                },
-                1.0,
-                "Updating Modrinth App...",
-            )
-            .await?;
+    //     if let Some(update) = update.ok().flatten() {
+    //         tracing::info!("Update found: {:?}", update.download_url);
+    //         let loader_bar_id = theseus::init_loading(
+    //             theseus::LoadingBarType::LauncherUpdate {
+    //                 version: update.version.clone(),
+    //                 current_version: update.current_version.clone(),
+    //             },
+    //             1.0,
+    //             "Updating Modrinth App...",
+    //         )
+    //         .await?;
 
-            // 100 MiB
-            const DEFAULT_CONTENT_LENGTH: u64 = 1024 * 1024 * 100;
+    //         // 100 MiB
+    //         const DEFAULT_CONTENT_LENGTH: u64 = 1024 * 1024 * 100;
 
-            update
-                .download_and_install(
-                    |chunk_length, content_length| {
-                        let _ = theseus::emit_loading(
-                            &loader_bar_id,
-                            (chunk_length as f64)
-                                / (content_length
-                                    .unwrap_or(DEFAULT_CONTENT_LENGTH)
-                                    as f64),
-                            None,
-                        );
-                    },
-                    || {},
-                )
-                .await?;
+    //         update
+    //             .download_and_install(
+    //                 |chunk_length, content_length| {
+    //                     let _ = theseus::emit_loading(
+    //                         &loader_bar_id,
+    //                         (chunk_length as f64)
+    //                             / (content_length
+    //                                 .unwrap_or(DEFAULT_CONTENT_LENGTH)
+    //                                 as f64),
+    //                         None,
+    //                     );
+    //                 },
+    //                 || {},
+    //             )
+    //             .await?;
 
-            app.restart();
-        }
-    }
+    //         app.restart();
+    //     }
+    // }
 
     #[cfg(not(feature = "updater"))]
     {
@@ -259,7 +259,6 @@ fn main() {
         .plugin(api::tags::init())
         .plugin(api::utils::init())
         .plugin(api::cache::init())
-        .plugin(api::ads::init())
         .invoke_handler(tauri::generate_handler![
             initialize_state,
             is_dev,

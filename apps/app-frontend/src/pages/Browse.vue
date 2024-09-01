@@ -22,7 +22,6 @@ import { get as getInstance, get_projects as getInstanceProjects } from '@/helpe
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { get_search_results } from '@/helpers/cache.js'
 import { debounce } from '@/helpers/utils.js'
-import PromotionWrapper from '@/components/ui/PromotionWrapper.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -529,7 +528,6 @@ const isModProject = computed(() => ['modpack', 'mod'].includes(projectType.valu
 <template>
   <div ref="searchWrapper" class="search-container">
     <aside class="filter-panel" @scroll="$refs.promo.scroll()">
-      <PromotionWrapper ref="promo" />
       <Card v-if="instanceContext" class="small-instance">
         <router-link :to="`/instance/${encodeURIComponent(instanceContext.path)}`" class="instance">
           <Avatar

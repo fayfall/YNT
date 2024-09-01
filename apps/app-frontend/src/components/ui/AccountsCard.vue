@@ -1,68 +1,89 @@
 <template>
-  <div
-    v-if="mode !== 'isolated'"
-    ref="button"
-    v-tooltip.right="'Minecraft accounts'"
-    class="button-base avatar-button"
-    :class="{ expanded: mode === 'expanded' }"
-    @click="toggleMenu"
-  >
-    <Avatar
-      :size="mode === 'expanded' ? 'xs' : 'sm'"
-      :src="
-        selectedAccount
-          ? `https://mc-heads.net/avatar/${selectedAccount.id}/128`
-          : 'https://launcher-files.modrinth.com/assets/steve_head.png'
-      "
-    />
+  <div v-if="mode !== 'isolated'" ref="button" v-tooltip.right="'Minecraft accounts'" class="button-base avatar-button"
+    :class="{ expanded: mode === 'expanded' }" @click="toggleMenu">
+    <Avatar :size="mode === 'expanded' ? 'xs' : 'sm'" :src="selectedAccount
+      ? `https://mc-heads.net/avatar/${selectedAccount.username}/128`
+      : 'https://launcher-files.modrinth.com/assets/steve_head.png'
+      " />
   </div>
   <transition name="fade">
-    <Card
-      v-if="showCard || mode === 'isolated'"
-      ref="card"
-      class="account-card"
-      :class="{ expanded: mode === 'expanded', isolated: mode === 'isolated' }"
-    >
+    <Card v-if="showCard || mode === 'isolated'" ref="card" class="account-card"
+      :class="{ expanded: mode === 'expanded', isolated: mode === 'isolated' }">
       <div v-if="selectedAccount" class="selected account">
-        <Avatar size="xs" :src="`https://mc-heads.net/avatar/${selectedAccount.id}/128`" />
+        <Avatar size="xs" :src="`https://mc-heads.net/avatar/${selectedAccount.username}/128`" />
         <div>
-          <h4>{{ selectedAccount.username }}</h4>
+          <h4>
+            <component :is="getAccountType(selectedAccount)" class="vector-icon" /> {{ selectedAccount.username }}
+          </h4>
           <p>Selected</p>
         </div>
         <Button v-tooltip="'Log out'" icon-only color="raised" @click="logout(selectedAccount.id)">
           <TrashIcon />
         </Button>
       </div>
-      <div v-else class="logged-out account">
+      <div v-else class="login-section account">
         <h4>Not signed in</h4>
-        <Button v-tooltip="'Log in'" icon-only color="primary" @click="login()">
-          <LogInIcon />
+        <Button v-tooltip="'Log in'" icon-only @click="login()">
+          <MicrosoftIcon />
+        </Button>
+        <Button v-tooltip="'Add offline'" icon-only @click="tryOfflineLogin()">
+          <PirateIcon />
         </Button>
       </div>
       <div v-if="displayAccounts.length > 0" class="account-group">
         <div v-for="account in displayAccounts" :key="account.id" class="account-row">
           <Button class="option account" @click="setAccount(account)">
-            <Avatar :src="`https://mc-heads.net/avatar/${account.id}/128`" class="icon" />
-            <p>{{ account.username }}</p>
+            <Avatar :src="`https://mc-heads.net/avatar/${account.username}/128`" class="icon" />
+            <p class="account-type">
+              <component :is="getAccountType(account)" class="vector-icon" />
+              {{ account.username }}
+            </p>
           </Button>
           <Button v-tooltip="'Log out'" icon-only @click="logout(account.id)">
             <TrashIcon />
           </Button>
         </div>
       </div>
-      <Button v-if="accounts.length > 0" @click="login()">
-        <PlusIcon />
-        Add account
-      </Button>
+      <div v-if="accounts.length > 0" class="login-section account centered">
+        <Button v-tooltip="'Log in'" icon-only @click="login()">
+          <MicrosoftIcon />
+        </Button>
+        <Button v-tooltip="'Add offline'" icon-only @click="tryOfflineLogin()">
+          <PirateIcon />
+        </Button>
+      </div>
     </Card>
   </transition>
+  <ModalWrapper ref="loginOfflineModal" class="modal" header="Offline auth">
+    <div class="modal-body">
+      <div class="label">Offline account</div>
+      <input type="text" v-model="playerName" placeholder="Provide offline player name" />
+      <Button icon-only color="secondary" @click="offlineLoginFinally()">
+        Continue
+      </Button>
+    </div>
+  </ModalWrapper>
+  <ModalWrapper ref="loginErrorModal" class="modal" header="Error while proceed">
+    <div class="modal-body">
+      <div class="label">Error occurred while adding offline account</div>
+      <Button color="primary" @click="retryOfflineLogin()">
+        Try again
+      </Button>
+    </div>
+  </ModalWrapper>
+  <ModalWrapper ref="unexpectedErrorModal" class="modal" header="Ошибка">
+    <div class="modal-body">
+      <div class="label">Unexcepted error</div>
+    </div>
+  </ModalWrapper>
 </template>
 
 <script setup>
-import { PlusIcon, TrashIcon, LogInIcon } from '@modrinth/assets'
+import { PlusIcon, TrashIcon, LogInIcon, PirateIcon as Offline, MicrosoftIcon as License, MicrosoftIcon, PirateIcon } from '@modrinth/assets'
 import { Avatar, Button, Card } from '@modrinth/ui'
 import { ref, computed, onMounted, onBeforeUnmount, onUnmounted } from 'vue'
 import {
+  offline_login,
   users,
   remove_user,
   set_default_user,
@@ -73,7 +94,7 @@ import { handleError } from '@/store/state.js'
 import { trackEvent } from '@/helpers/analytics'
 import { process_listener } from '@/helpers/events'
 import { handleSevereError } from '@/store/error.js'
-import { show_ads_window, hide_ads_window } from '@/helpers/ads.js'
+import ModalWrapper from './modal/ModalWrapper.vue'
 
 defineProps({
   mode: {
@@ -87,6 +108,46 @@ const emit = defineEmits(['change'])
 
 const accounts = ref({})
 const defaultUser = ref()
+const loginOfflineModal = ref(null)
+const loginErrorModal = ref(null)
+const unexpectedErrorModal = ref(null)
+const playerName = ref('')
+
+async function tryOfflineLogin() { // Patched
+  loginOfflineModal.value.show()
+}
+
+async function offlineLoginFinally() { // Patched
+  let name = playerName.value
+  if (name.length > 1 && name.length < 20 && name !== '') {
+    const loggedIn = await offline_login(name).catch(handleError)
+    loginOfflineModal.value.hide()
+    if (loggedIn) {
+      await setAccount(loggedIn)
+      await refreshValues()
+    } else {
+      unexpectedErrorModal.value.show()
+    }
+    playerName.value = ''
+  } else {
+    playerName.value = ''
+    loginOfflineModal.value.hide()
+    loginErrorModal.value.show()
+  }
+}
+
+function retryOfflineLogin() { // Patched
+  loginErrorModal.value.hide()
+  tryOfflineLogin()
+}
+
+function getAccountType(account) { // Patched
+  if (account.access_token != "null" && account.access_token != null && account.access_token != "") {
+    return License
+  } else {
+    return Offline
+  }
+}
 
 async function refreshValues() {
   defaultUser.value = await get_default_user().catch(handleError)
@@ -151,13 +212,8 @@ const handleClickOutside = (event) => {
 
 function toggleMenu(override = true) {
   if (showCard.value || !override) {
-    if (showCard.value) {
-      show_ads_window()
-    }
-
     showCard.value = false
   } else {
-    hide_ads_window()
     showCard.value = true
   }
 }
@@ -189,10 +245,16 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
-.logged-out {
+.login-section {
   background: var(--color-bg);
   border-radius: var(--radius-lg);
   gap: 1rem;
+}
+
+
+.vector-icon {
+  width: 12px;
+  height: 12px;
 }
 
 .account {
@@ -253,6 +315,12 @@ onUnmounted(() => {
 .accounts-title {
   font-size: 1.2rem;
   font-weight: bolder;
+}
+
+.centered {
+  display: flex;
+  gap: 1rem;
+  margin: auto;
 }
 
 .account-group {

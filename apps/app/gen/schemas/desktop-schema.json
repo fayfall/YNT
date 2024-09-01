@@ -300,69 +300,6 @@
     "Identifier": {
       "oneOf": [
         {
-          "description": "ads:default -> Default plugin permissions.",
-          "type": "string",
-          "enum": [
-            "ads:default"
-          ]
-        },
-        {
-          "description": "ads:allow-hide-ads-window -> Enables the hide_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:allow-hide-ads-window"
-          ]
-        },
-        {
-          "description": "ads:allow-init-ads-window -> Enables the init_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:allow-init-ads-window"
-          ]
-        },
-        {
-          "description": "ads:allow-scroll-ads-window -> Enables the scroll_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:allow-scroll-ads-window"
-          ]
-        },
-        {
-          "description": "ads:allow-show-ads-window -> Enables the show_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:allow-show-ads-window"
-          ]
-        },
-        {
-          "description": "ads:deny-hide-ads-window -> Denies the hide_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:deny-hide-ads-window"
-          ]
-        },
-        {
-          "description": "ads:deny-init-ads-window -> Denies the init_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:deny-init-ads-window"
-          ]
-        },
-        {
-          "description": "ads:deny-scroll-ads-window -> Denies the scroll_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:deny-scroll-ads-window"
-          ]
-        },
-        {
-          "description": "ads:deny-show-ads-window -> Denies the show_ads_window command without any pre-configured scope.",
-          "type": "string",
-          "enum": [
-            "ads:deny-show-ads-window"
-          ]
-        },
-        {
           "description": "auth:default -> Default plugin permissions.",
           "type": "string",
           "enum": [
@@ -388,6 +325,13 @@
           "type": "string",
           "enum": [
             "auth:allow-login"
+          ]
+        },
+        {
+          "description": "auth:allow-offline-login -> Enables the offline_login command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "auth:allow-offline-login"
           ]
         },
         {
@@ -423,6 +367,13 @@
           "type": "string",
           "enum": [
             "auth:deny-login"
+          ]
+        },
+        {
+          "description": "auth:deny-offline-login -> Denies the offline_login command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "auth:deny-offline-login"
           ]
         },
         {
@@ -3989,6 +3940,13 @@
           ]
         },
         {
+          "description": "utils:allow-get-artifact -> Enables the get_artifact command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "utils:allow-get-artifact"
+          ]
+        },
+        {
           "description": "utils:allow-get-opening-command -> Enables the get_opening_command command without any pre-configured scope.",
           "type": "string",
           "enum": [
@@ -4035,6 +3993,13 @@
           "type": "string",
           "enum": [
             "utils:allow-show-launcher-logs-folder"
+          ]
+        },
+        {
+          "description": "utils:deny-get-artifact -> Denies the get_artifact command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "utils:deny-get-artifact"
           ]
         },
         {

@@ -61,7 +61,6 @@
           </RouterLink>
         </div>
       </Card>
-      <PromotionWrapper ref="promo" class="mt-4" />
     </div>
     <div class="content">
       <RouterView v-slot="{ Component }">
@@ -136,7 +135,6 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { handleSevereError } from '@/store/error.js'
 import { get_project, get_version_many } from '@/helpers/cache.js'
 import dayjs from 'dayjs'
-import PromotionWrapper from '@/components/ui/PromotionWrapper.vue'
 
 const route = useRoute()
 

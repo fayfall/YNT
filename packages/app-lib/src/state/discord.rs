@@ -1,12 +1,17 @@
-use std::sync::{atomic::AtomicBool, Arc};
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use discord_rich_presence::{
-    activity::{Activity, Assets},
+    activity::{Activity, Assets, Timestamps},
     DiscordIpc, DiscordIpcClient,
 };
+use rand::seq::SliceRandom;
 use tokio::sync::RwLock;
 
-use crate::state::Profile;
+// use crate::state::Profile;
+use crate::util::utils;
 use crate::State;
 
 pub struct DiscordGuard {
@@ -14,12 +19,29 @@ pub struct DiscordGuard {
     connected: Arc<AtomicBool>,
 }
 
+pub(crate) const ACTIVE_STATE: [&str; 6] = [
+    "Explores",
+    "Travels with",
+    "Pirating",
+    "Investigating the",
+    "Engaged in",
+    "Conducting",
+];
+pub(crate) const INACTIVE_STATE: [&str; 6] = [
+    "Idling...",
+    "Waiting for the pirate team...",
+    "Taking a break...",
+    "Resting...",
+    "On standby...",
+    "In a holding pattern...",
+];
+
 impl DiscordGuard {
     /// Initialize discord IPC client, and attempt to connect to it
     /// If it fails, it will still return a DiscordGuard, but the client will be unconnected
     pub fn init() -> crate::Result<DiscordGuard> {
         let dipc =
-            DiscordIpcClient::new("1123683254248148992").map_err(|e| {
+            DiscordIpcClient::new("1190718475832918136").map_err(|e| {
                 crate::ErrorKind::OtherError(format!(
                     "Could not create Discord client {}",
                     e,
@@ -77,11 +99,32 @@ impl DiscordGuard {
             return Ok(());
         }
 
-        let activity = Activity::new().state(msg).assets(
-            Assets::new()
-                .large_image("modrinth_simple")
-                .large_text("Modrinth Logo"),
-        );
+        // let activity = Activity::new().state(msg).assets(
+        //     Assets::new()
+        //         .large_image("modrinth_simple")
+        //         .large_text("Modrinth Logo"),
+        // );
+
+        let launcher =
+            utils::read_package_json().expect("Failed to read package.json");
+
+        let build_info = format!("AR • v{}", launcher.version);
+        let build_download = "https://astralium.su/get/ar";
+
+        let time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Failed to get system time")
+            .as_secs() as i64;
+        let activity = Activity::new()
+            .state(msg)
+            .assets(
+                Assets::new()
+                    .large_image("astralrinth_logo")
+                    .large_text(&build_info)
+                    .small_image("astralrinth_logo")
+                    .small_text(&build_download),
+            )
+            .timestamps(Timestamps::new().start(time));
 
         // Attempt to set the activity
         // If the existing connection fails, attempt to reconnect and try again
@@ -167,20 +210,10 @@ impl DiscordGuard {
             return self.clear_activity(true).await;
         }
 
-        let running_profiles = state.process_manager.get_all();
-        if let Some(existing_child) = running_profiles.first() {
-            let prof =
-                Profile::get(&existing_child.profile_path, &state.pool).await?;
-            if let Some(prof) = prof {
-                self.set_activity(
-                    &format!("Playing {}", prof.name),
-                    reconnect_if_fail,
-                )
-                .await?;
-            }
-        } else {
-            self.set_activity("Idling...", reconnect_if_fail).await?;
-        }
+        let selected_phrase =
+            INACTIVE_STATE.choose(&mut rand::thread_rng()).unwrap();
+        self.set_activity(&format!("{}", selected_phrase), reconnect_if_fail)
+            .await?;
         Ok(())
     }
 }

@@ -13,6 +13,10 @@ import { invoke } from '@tauri-apps/api/core'
 //   await authenticate_await_completion()
 // }
 
+export async function offline_login(name) {
+  return await invoke('plugin:auth|offline_login', { name: name })
+}
+
 /**
  * Authenticate a user with Hydra - part 1.
  * This begins the authentication flow quasi-synchronously.

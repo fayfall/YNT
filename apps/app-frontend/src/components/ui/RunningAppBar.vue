@@ -4,13 +4,8 @@
       <ChatIcon />
       <span> Get support </span>
     </a>
-    <Button
-      v-if="currentLoadingBars.length > 0"
-      ref="infoButton"
-      icon-only
-      class="icon-button show-card-icon"
-      @click="toggleCard()"
-    >
+    <Button v-if="currentLoadingBars.length > 0" ref="infoButton" icon-only class="icon-button show-card-icon"
+      @click="toggleCard()">
       <DownloadIcon />
     </Button>
     <div v-if="offline" class="status">
@@ -25,33 +20,19 @@
         <router-link :to="`/instance/${encodeURIComponent(selectedProcess.profile.path)}`">
           {{ selectedProcess.profile.name }}
         </router-link>
-        <div
-          v-if="currentProcesses.length > 1"
-          class="arrow button-base"
-          :class="{ rotate: showProfiles }"
-          @click="toggleProfiles()"
-        >
+        <div v-if="currentProcesses.length > 1" class="arrow button-base" :class="{ rotate: showProfiles }"
+          @click="toggleProfiles()">
           <DropdownIcon />
         </div>
       </div>
-      <Button
-        v-tooltip="'Stop instance'"
-        icon-only
-        class="icon-button stop"
-        @click="stop(selectedProcess)"
-      >
+      <Button v-tooltip="'Stop instance'" icon-only class="icon-button stop" @click="stop(selectedProcess)">
         <StopCircleIcon />
       </Button>
       <Button v-tooltip="'View logs'" icon-only class="icon-button" @click="goToTerminal()">
         <TerminalSquareIcon />
       </Button>
-      <Button
-        v-if="currentLoadingBars.length > 0"
-        ref="infoButton"
-        icon-only
-        class="icon-button show-card-icon"
-        @click="toggleCard()"
-      >
+      <Button v-if="currentLoadingBars.length > 0" ref="infoButton" icon-only class="icon-button show-card-icon"
+        @click="toggleCard()">
         <DownloadIcon />
       </Button>
     </div>
@@ -59,6 +40,40 @@
       <span class="circle stopped" />
       <span class="running-text"> No instances running </span>
     </div>
+    <div v-if="updateState">
+      <a>
+        <Button class="download" :disabled="installState" @click="confirmUpdating(), getRemote(false, false)">
+          <DownloadIcon />
+          {{
+            installState
+              ? "Downloading new update..."
+              : "Download new update"
+          }}
+        </Button>
+      </a>
+    </div>
+    <ModalWrapper ref="confirmUpdate" :has-to-type="false" header="Request to update the AstralRinth launcher">
+      <div class="modal-body">
+        <div class="markdown-body">
+          <p>
+            Before updating, make sure that you have saved all running instances and made a backup copy of the instances
+            that are valuable to you. Remember that the authors of the product are not responsible for the breakdown of
+            your files, so you should always make copies of them and keep them in a safe place.
+          </p>
+        </div>
+        <span>Version on remote server • <p id="releaseData" class="cosmic inline-fix"></p></span>
+        <span>Version on local device •
+          <p class="cosmic inline-fix">v{{ version }}</p>
+        </span>
+        <div class="button-group push-right">
+          <Button class="download-modal" @click="confirmUpdate.hide()">
+            Decline</Button>
+          <Button class="download-modal" @click="approvedUpdating()">
+            Accept
+          </Button>
+        </div>
+      </div>
+    </ModalWrapper>
   </div>
   <transition name="download">
     <Card v-if="showCard === true && currentLoadingBars.length > 0" ref="card" class="info-card">
@@ -74,32 +89,14 @@
     </Card>
   </transition>
   <transition name="download">
-    <Card
-      v-if="showProfiles === true && currentProcesses.length > 0"
-      ref="profiles"
-      class="profile-card"
-    >
-      <Button
-        v-for="process in currentProcesses"
-        :key="process.uuid"
-        class="profile-button"
-        @click="selectProcess(process)"
-      >
+    <Card v-if="showProfiles === true && currentProcesses.length > 0" ref="profiles" class="profile-card">
+      <Button v-for="process in currentProcesses" :key="process.uuid" class="profile-button"
+        @click="selectProcess(process)">
         <div class="text"><span class="circle running" /> {{ process.profile.name }}</div>
-        <Button
-          v-tooltip="'Stop instance'"
-          icon-only
-          class="icon-button stop"
-          @click.stop="stop(process)"
-        >
+        <Button v-tooltip="'Stop instance'" icon-only class="icon-button stop" @click.stop="stop(process)">
           <StopCircleIcon />
         </Button>
-        <Button
-          v-tooltip="'View logs'"
-          icon-only
-          class="icon-button"
-          @click.stop="goToTerminal(process.profile.path)"
-        >
+        <Button v-tooltip="'View logs'" icon-only class="icon-button" @click.stop="goToTerminal(process.profile.path)">
           <TerminalSquareIcon />
         </Button>
       </Button>
@@ -120,6 +117,23 @@ import { handleError } from '@/store/notifications.js'
 import { ChatIcon } from '@/assets/icons'
 import { get_many } from '@/helpers/profile.js'
 import { trackEvent } from '@/helpers/analytics'
+import { version } from '../../../package.json'
+
+import { installState, getRemote, updateState } from '@/helpers/update.js'
+import ModalWrapper from './modal/ModalWrapper.vue'
+
+const confirmUpdate = ref(null)
+
+const confirmUpdating = async () => {
+  confirmUpdate.value.show()
+}
+
+const approvedUpdating = async () => {
+  confirmUpdate.value.hide()
+  await getRemote(true, true)
+}
+
+await getRemote(true, false)
 
 const router = useRouter()
 const card = ref(null)
@@ -277,6 +291,101 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
+.inline-fix {
+  display: inline-flex;
+  margin-top: -2rem;
+  margin-bottom: -2rem;
+  //margin-left: 0.3rem;
+}
+
+.cosmic {
+  color: #3e8cde;
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+
+.markdown-body {
+  :deep(table) {
+    width: auto;
+  }
+
+  :deep(hr),
+  :deep(h1),
+  :deep(h2) {
+    max-width: max(60rem, 90%);
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin-left: 2rem;
+  }
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: var(--gap-lg);
+  text-align: left;
+
+  .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  strong {
+    color: var(--color-contrast);
+  }
+}
+
+.download {
+  color: #3e8cde;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-button-bg);
+  // padding: var(--gap-sm) var(--gap-lg);
+  background-color: rgba(0, 0, 0, 0);
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download:hover,
+.download:focus,
+.download:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
+.download-modal {
+  color: #3e8cde;
+  padding: var(--gap-sm) var(--gap-lg);
+  text-decoration: none;
+  text-shadow:
+    0 0 4px rgba(79, 173, 255, 0.5),
+    0 0 8px rgba(14, 98, 204, 0.5),
+    0 0 12px rgba(122, 31, 199, 0.5);
+  transition: color 0.35s ease;
+}
+
+.download-modal:hover,
+.download-modal:focus,
+.download-modal:active {
+  color: #10fae5;
+  text-shadow: #26065e;
+}
+
 .action-groups {
   display: flex;
   flex-direction: row;
@@ -288,6 +397,7 @@ onBeforeUnmount(() => {
   transition: transform 0.2s ease-in-out;
   display: flex;
   align-items: center;
+
   &.rotate {
     transform: rotate(180deg);
   }
@@ -309,8 +419,10 @@ onBeforeUnmount(() => {
   gap: var(--gap-xs);
   white-space: nowrap;
   overflow: hidden;
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
+  -webkit-user-select: none;
+  /* Safari */
+  -ms-user-select: none;
+  /* IE 10 and IE 11 */
   user-select: none;
 
   &.clickable:hover {

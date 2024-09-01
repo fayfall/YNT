@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Modal } from '@modrinth/ui'
-import { show_ads_window, hide_ads_window } from '@/helpers/ads.js'
+
 import { useTheming } from '@/store/theme.js'
 
 const themeStore = useTheming()
@@ -18,7 +18,7 @@ const props = defineProps({
   onHide: {
     type: Function,
     default() {
-      return () => {}
+      return () => { }
     },
   },
 })
@@ -27,7 +27,6 @@ const modal = ref(null)
 
 defineExpose({
   show: () => {
-    hide_ads_window()
     modal.value.show()
   },
   hide: () => {
@@ -37,7 +36,6 @@ defineExpose({
 })
 
 function onModalHide() {
-  show_ads_window()
   props.onHide()
 }
 </script>

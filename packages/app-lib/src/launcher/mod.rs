@@ -16,6 +16,7 @@ use chrono::Utc;
 use daedalus as d;
 use daedalus::minecraft::{RuleAction, VersionInfo};
 use daedalus::modded::LoaderVersion;
+use rand::seq::SliceRandom;
 use st::Profile;
 use std::collections::HashMap;
 use tokio::process::Command;
@@ -23,6 +24,8 @@ use tokio::process::Command;
 mod args;
 
 pub mod download;
+
+use crate::state::ACTIVE_STATE;
 
 // All nones -> disallowed
 // 1+ true -> allowed
@@ -672,10 +675,11 @@ pub async fn launch_minecraft(
         }
     }
 
-    let _ = state
-        .discord_rpc
-        .set_activity(&format!("Playing {}", profile.name), true)
-        .await;
+    let selected_phrase = ACTIVE_STATE.choose(&mut rand::thread_rng()).unwrap();
+        let _ = state
+            .discord_rpc
+            .set_activity(&format!("{} {}", selected_phrase, profile.name), true)
+            .await;
 
     // Create Minecraft child by inserting it into the state
     // This also spawns the process and prepares the subsequent processes

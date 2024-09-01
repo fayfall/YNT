@@ -7,6 +7,7 @@ use theseus::prelude::*;
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     tauri::plugin::Builder::<R>::new("auth")
         .invoke_handler(tauri::generate_handler![
+            offline_login,
             login,
             remove_user,
             get_default_user,
@@ -14,6 +15,14 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             get_users,
         ])
         .build()
+}
+
+/// Create new offline user
+/// This is custom function from Astralium Org.
+#[tauri::command]
+pub async fn offline_login(name: &str) -> Result<Credentials> {
+    let credentials = minecraft_auth::offline_auth(name).await?;
+    Ok(credentials)
 }
 
 /// Authenticate a user with Hydra - part 1

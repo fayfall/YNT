@@ -8,7 +8,7 @@ import {
   PlusIcon,
   SettingsIcon,
   XIcon,
-  DownloadIcon,
+  // DownloadIcon,
 } from '@modrinth/assets'
 import { Button, Notifications } from '@modrinth/ui'
 import { useLoading, useTheming } from '@/store/state'
@@ -24,7 +24,7 @@ import { handleError, useNotifications } from '@/store/notifications.js'
 import { command_listener, warning_listener } from '@/helpers/events.js'
 import { MinimizeIcon, MaximizeIcon } from '@/assets/icons'
 import { type } from '@tauri-apps/plugin-os'
-import { isDev, getOS, restartApp } from '@/helpers/utils.js'
+import { isDev, getOS } from '@/helpers/utils.js'
 import { initAnalytics, debugAnalytics, optOutAnalytics, trackEvent } from '@/helpers/analytics'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { getVersion } from '@tauri-apps/api/app'
@@ -42,7 +42,7 @@ import { get_opening_command, initialize_state } from '@/helpers/state'
 import { saveWindowState, StateFlags } from '@tauri-apps/plugin-window-state'
 import { renderString } from '@modrinth/utils'
 import { useFetch } from '@/helpers/fetch.js'
-import { check } from '@tauri-apps/plugin-updater'
+// import { check } from '@tauri-apps/plugin-updater'
 
 const themeStore = useTheming()
 
@@ -99,6 +99,7 @@ async function setupApp() {
 
   initAnalytics()
   if (!telemetry) {
+    console.info("[AstralRinth] Telemetry disabled by default (Hard patched in code).")
     optOutAnalytics()
   }
   if (dev) debugAnalytics()
@@ -121,18 +122,18 @@ async function setupApp() {
     }),
   )
 
-  useFetch(
-    `https://api.modrinth.com/appCriticalAnnouncement.json?version=${version}`,
-    'criticalAnnouncements',
-    true,
-  ).then((res) => {
-    if (res && res.header && res.body) {
-      criticalErrorMessage.value = res
-    }
-  })
+  // useFetch(
+  //   `https://api.modrinth.com/appCriticalAnnouncement.json?version=${version}`,
+  //   'criticalAnnouncements',
+  //   true,
+  // ).then((res) => {
+  //   if (res && res.header && res.body) {
+  //     criticalErrorMessage.value = res
+  //   }
+  // })
 
   get_opening_command().then(handleCommand)
-  checkUpdates()
+  // checkUpdates()
 }
 
 const stateFailed = ref(false)
@@ -243,19 +244,19 @@ async function handleCommand(e) {
   }
 }
 
-const updateAvailable = ref(false)
-async function checkUpdates() {
-  const update = await check()
-  console.log(update)
-  updateAvailable.value = !!update
+// const updateAvailable = ref(false)
+// async function checkUpdates() {
+//   const update = await check()
+//   console.log(update)
+//   updateAvailable.value = !!update
 
-  setTimeout(
-    () => {
-      checkUpdates()
-    },
-    5 * 1000 * 60,
-  )
-}
+//   setTimeout(
+//     () => {
+//       checkUpdates()
+//     },
+//     5 * 1000 * 60,
+//   )
+// }
 </script>
 
 <template>
@@ -289,14 +290,14 @@ async function checkUpdates() {
         </div>
       </div>
       <div class="settings pages-list">
-        <button
+        <!-- <button
           v-if="updateAvailable"
           v-tooltip="'Install update'"
           class="btn btn-outline btn-primary icon-only collapsed-button"
           @click="restartApp()"
         >
           <DownloadIcon />
-        </button>
+        </button> -->
         <Button
           v-tooltip="'Create profile'"
           class="sleek-primary collapsed-button"

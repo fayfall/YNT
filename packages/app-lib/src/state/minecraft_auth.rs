@@ -197,6 +197,29 @@ pub async fn login_finish(
     Ok(credentials)
 }
 
+#[tracing::instrument]
+pub async fn offline_auth(
+    name: &str,
+    exec: impl sqlx::Executor<'_, Database = sqlx::Sqlite> + Copy,
+) -> crate::Result<Credentials> {
+    let random_uuid = Uuid::new_v4();
+    let access_token = "null".to_string();
+    let refresh_token = "null".to_string();
+
+    let credentials = Credentials {
+        id: random_uuid,
+        username: name.to_string(),
+        access_token: access_token,
+        refresh_token: refresh_token,
+        expires: Utc::now() + Duration::days(365 * 99),
+        active: true,
+    };
+
+    credentials.upsert(exec).await?;
+
+    Ok(credentials)
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Credentials {
     pub id: Uuid,

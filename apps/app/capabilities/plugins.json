@@ -35,7 +35,6 @@
     "cache:default",
     "settings:default",
     "tags:default",
-    "utils:default",
-    "ads:default"
+    "utils:default"
   ]
 }

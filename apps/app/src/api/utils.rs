@@ -11,6 +11,7 @@ use std::path::PathBuf;
 pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new("utils")
         .invoke_handler(tauri::generate_handler![
+            get_artifact,
             get_os,
             should_disable_mouseover,
             highlight_in_folder,
@@ -20,6 +21,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             get_opening_command
         ])
         .build()
+}
+
+#[tauri::command]
+pub async fn get_artifact(downloadurl: &str, filename: &str, ostype: &str, autoupdatesupported: bool) -> Result<()> {
+    theseus::download::init_download(downloadurl, filename, ostype, autoupdatesupported).await;
+    Ok(())
 }
 
 /// Gets OS

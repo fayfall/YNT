@@ -12,6 +12,7 @@ fn main() {
                 "auth",
                 InlinedPlugin::new()
                     .commands(&[
+                        "offline_login",
                         "login",
                         "remove_user",
                         "get_default_user",
@@ -206,6 +207,7 @@ fn main() {
                 "utils",
                 InlinedPlugin::new()
                     .commands(&[
+                        "get_artifact",
                         "get_os",
                         "should_disable_mouseover",
                         "highlight_in_folder",
@@ -213,19 +215,6 @@ fn main() {
                         "show_launcher_logs_folder",
                         "progress_bars_list",
                         "get_opening_command",
-                    ])
-                    .default_permission(
-                        DefaultPermissionRule::AllowAllCommands,
-                    ),
-            )
-            .plugin(
-                "ads",
-                InlinedPlugin::new()
-                    .commands(&[
-                        "init_ads_window",
-                        "hide_ads_window",
-                        "scroll_ads_window",
-                        "show_ads_window",
                     ])
                     .default_permission(
                         DefaultPermissionRule::AllowAllCommands,

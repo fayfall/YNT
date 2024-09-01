@@ -10,6 +10,11 @@ export async function getOS() {
   return await invoke('plugin:utils|get_os')
 }
 
+export async function getArtifact(downloadurl, filename, ostype, autoupdatesupported) {
+  console.log('Downloading build', downloadurl, filename, ostype, autoupdatesupported)
+  return await invoke('plugin:utils|get_artifact', { downloadurl, filename, ostype, autoupdatesupported })
+}
+
 export async function openPath(path) {
   return await invoke('plugin:utils|open_path', { path })
 }

@@ -49,7 +49,7 @@
   },
   "productName": "AstralRinth App",
   "version": "0.8.5",
-  "identifier": "AstralRinth",
+  "identifier": "AstralRinthApp",
   "plugins": {
     "deep-link": {
       "desktop": {

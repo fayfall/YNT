@@ -1,0 +1,13 @@
+diff --git a/apps/app-frontend/src/components/ui/InstanceCreationModal.vue b/apps/app-frontend/src/components/ui/InstanceCreationModal.vue
+index e439c203..131393ea 100644
+--- a/apps/app-frontend/src/components/ui/InstanceCreationModal.vue
++++ b/apps/app-frontend/src/components/ui/InstanceCreationModal.vue
+@@ -417,7 +417,7 @@ const openFile = async () => {
+   const newProject = await open({ multiple: false })
+   if (!newProject) return
+   hide()
+-  await install_from_file(newProject.path).catch(handleError)
++  await install_from_file(newProject).catch(handleError)
+ 
+   trackEvent('InstanceCreate', {
+     source: 'CreationModalFileOpen',

@@ -353,12 +353,16 @@ await getBranches()
           <span class="label__title size-card-header">Java settings</span>
         </h3>
       </div>
-      <template v-for="version in [21, 17, 8]">
-        <label :for="'java-' + version">
-          <span class="label__title">Java {{ version }} location</span>
+      <template v-for="javaVersion in [21, 17, 8]" :key="`java-${javaVersion}`">
+        <label :for="'java-' + javaVersion">
+          <span class="label__title">Java {{ javaVersion }} location</span>
         </label>
-        <JavaSelector :id="'java-selector-' + version" v-model="javaVersions[version]" :version="version"
-          @update:model-value="updateJavaVersion" />
+        <JavaSelector
+          :id="'java-selector-' + javaVersion"
+          v-model="javaVersions[javaVersion]"
+          :version="javaVersion"
+          @update:model-value="updateJavaVersion"
+        />
       </template>
       <hr class="card-divider" />
       <label for="java-args">

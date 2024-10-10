@@ -21,9 +21,6 @@
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": "http://timestamp.digicert.com",
-      "wix": {
-        "template": "./msi/main.wxs"
-      },
       "nsis": {
         "installMode": "perMachine",
         "installerHooks": "./nsis/hooks.nsi"
@@ -52,8 +49,9 @@
     ]
   },
   "productName": "AstralRinth App",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "identifier": "AstralRinthApp",
+  "mainBinaryName": "AstralRinth App",
   "plugins": {
     "deep-link": {
       "desktop": {
